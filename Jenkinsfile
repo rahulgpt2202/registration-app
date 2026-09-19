@@ -6,25 +6,25 @@ pipeline{
 }
   stages{
     stage("Cleanup Workspace"){
-      steps{
-        cleanWs()
+            steps{
+            cleanWs()
+              }
       }
-    }
     stage("Checkout from SCM"){
-      steps(
-        git branch: 'main', credentialsId: 'github', url: 'https://github.com/rahulgpt2202/registration-app'
-        }
-        }
+            steps{
+            git branch: 'main', credentialsId: 'github', url: 'https://github.com/rahulgpt2202/registration-app'
+              }
+      }
     stage("Build Application"){
-      steps{
-        sh "mvn clean package"
-        }
-        }
+            steps{
+            sh "mvn clean package"
+              }
+      }
     stage("Test Application"){
-      steps{
-        sh "mvn test"
-        }
-        }
+            steps{
+            sh "mvn test"
+              }
+      }
         
         }
 }
