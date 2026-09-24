@@ -26,12 +26,10 @@ pipeline{
               }
       }
 
-    stage("SonarQube Analysis") {
+    stage('SonarQube Analysis') {
     steps {
-        script {
-            withSonarQubeEnv('sonarqube-server') {
-                sh "mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.9.1.2184:sonar"
-            }
+        withSonarQubeEnv('sonarqube-server') {
+            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token=YOUR_SONAR_TOKEN'
         }
     }
 }
