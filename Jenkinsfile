@@ -38,5 +38,13 @@ pipeline {
                 }
             }
         }
+        sstage("Quality Gate") {
+            steps {
+                script {
+                    // SonarQube Webhook analysis status Jenkins ko bhejega
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
     }
 }
