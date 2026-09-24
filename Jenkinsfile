@@ -6,10 +6,6 @@ pipeline {
         maven 'Maven3'
     }
 
-    environment {
-        SONAR_CRED = credentials('sonar-token')
-    }
-
     stages {
         stage("Cleanup Workspace") {
             steps {
@@ -38,7 +34,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token=${SONAR_CRED}'
+                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token=YOUR_ACTUAL_SONARQUBE_TOKEN'
                 }
             }
         }
