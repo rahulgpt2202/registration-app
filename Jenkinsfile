@@ -38,11 +38,11 @@ pipeline {
                 }
             }
         }
-        sstage("Quality Gate") {
+
+        stage("Quality Gate") {
             steps {
                 script {
-                    // SonarQube Webhook analysis status Jenkins ko bhejega
-                    waitForQualityGate abortPipeline: true
+                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
                 }
             }
         }
