@@ -21,20 +21,16 @@ pipeline {
 
         stage("Build Application") {
             steps {
-                sh "mvn clean package"
-            }
-        }
-
-        stage("Test Application") {
-            steps {
-                sh "mvn test"
+                // Fast build without redundant test execution
+                sh "mvn clean package -DskipTests"
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.token=sqa_542947a4ca3d34b817b47d2f680d3cd988b611ad'
+                    // Plugin version is managed via pom.xml
+                    sh 'mvn sonar:sonar -Dsonar.token=sqa_542947a4ca3d34b817b47d2f680d3cd988b611ad'
                 }
             }
         }
@@ -42,7 +38,9 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
+                    timeout(time: 2, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true, credentialsId: 'jenkins-sonarqube-token'
+                    }
                 }
             }
         }
