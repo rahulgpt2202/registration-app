@@ -22,7 +22,7 @@ pipeline {
         stage("Build Application") {
             steps {
                 // Fast build without redundant test execution
-                sh "mvn clean package -DskipTests"
+                sh 'mvn clean package -DskipTests'
             }
         }
 
