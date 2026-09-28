@@ -12,8 +12,6 @@ pipeline {
         DOCKER_USER = "rahak2202"
         IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
         IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
-        // Credentials should ideally be stored in Jenkins Credentials Manager
-        DOCKER_CREDS = credentials('dockerhub-credentials-id') 
     }
 
     stages {
@@ -38,8 +36,6 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    // Added network timeout (-Dsonar.ws.timeout=60) to fix "Connection reset" errors
-                    // Removed hardcoded token so Jenkins uses the token configured in System settings
                     sh 'mvn sonar:sonar -Dsonar.ws.timeout=60'
                 }
             }
@@ -48,7 +44,6 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    // Timeout ensures the pipeline doesn't hang indefinitely if webhook fails
                     timeout(time: 5, unit: 'MINUTES') {
                         waitForQualityGate abortPipeline: true
                     }
@@ -59,6 +54,7 @@ pipeline {
         stage("Build & Push Docker Image") {
             steps {
                 script {
+                    // Ensure 'dockerhub-credentials-id' is created in Jenkins Credentials Store
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
                         def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                         dockerImage.push("${IMAGE_TAG}")
@@ -71,7 +67,9 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            node('Jenkins-Agent') {
+                cleanWs()
+            }
         }
     }
 }
