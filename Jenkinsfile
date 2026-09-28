@@ -5,14 +5,16 @@ pipeline {
         jdk 'Java21'
         maven 'Maven3'
     }
+    
     environment {
-            APP_NAME = "register-app-pipeline"
-            RELEASE = "1.0.0"
-            DOCKER_USER = "rahak2202"
-            DOCKER_PASS = 'Jay@092773271'
-            IMAGE_NAME = "${DOCKER_USER}" + "/" + "${APP_NAME}"
-            IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
-}
+        APP_NAME = "register-app-pipeline"
+        RELEASE = "1.0.0"
+        DOCKER_USER = "rahak2202"
+        IMAGE_NAME = "${DOCKER_USER}/${APP_NAME}"
+        IMAGE_TAG = "${RELEASE}-${BUILD_NUMBER}"
+        // Credentials should ideally be stored in Jenkins Credentials Manager
+        DOCKER_CREDS = credentials('dockerhub-credentials-id') 
+    }
 
     stages {
         stage("Cleanup Workspace") {
@@ -29,7 +31,6 @@ pipeline {
 
         stage("Build Application") {
             steps {
-                // Fast build without redundant test execution
                 sh 'mvn clean package -DskipTests'
             }
         }
@@ -37,8 +38,9 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    // Plugin version is managed via pom.xml
-                    sh 'mvn sonar:sonar -Dsonar.token=sqa_542947a4ca3d34b817b47d2f680d3cd988b611ad'
+                    // Added network timeout (-Dsonar.ws.timeout=60) to fix "Connection reset" errors
+                    // Removed hardcoded token so Jenkins uses the token configured in System settings
+                    sh 'mvn sonar:sonar -Dsonar.ws.timeout=60'
                 }
             }
         }
@@ -46,25 +48,30 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    waitForQualityGate abortPipeline: false, credentialsId: 'jenkins-sonarqube-token'
+                    // Timeout ensures the pipeline doesn't hang indefinitely if webhook fails
+                    timeout(time: 5, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
                     }
                 }
-            
+            }
         }
 
         stage("Build & Push Docker Image") {
             steps {
                 script {
-                    docker.withRegistry('', DOCKER_PASS) {
-                        docker_image = docker.build "${IMAGE_NAME}"
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                        def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
+                        dockerImage.push("${IMAGE_TAG}")
+                        dockerImage.push('latest')
                     }
-
-                   docker.withRegistry('', DOCKER_PASS) {
-                       docker_image.push("${IMAGE_TAG}")
-                       docker_image.push('latest')
+                }
             }
         }
     }
-}
+
+    post {
+        always {
+            cleanWs()
+        }
     }
 }
