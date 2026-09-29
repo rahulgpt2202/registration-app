@@ -52,7 +52,7 @@ pipeline {
         stage("Build & Push Docker Image") {
             steps {
                 script {
-                    // 'dockerhub' matches the exact credential ID saved in Jenkins
+                    // ID set to 'dockerhub' matching your saved Jenkins credential
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                         dockerImage.push("${IMAGE_TAG}")
@@ -61,6 +61,7 @@ pipeline {
                 }
             }
         }
+    }
 
     post {
         always {
