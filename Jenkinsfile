@@ -36,7 +36,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
-                    sh 'mvn sonar:sonar -Dsonar.ws.timeout=60'
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
@@ -44,9 +44,7 @@ pipeline {
         stage("Quality Gate") {
             steps {
                 script {
-                    timeout(time: 5, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
-                    }
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
