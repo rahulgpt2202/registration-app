@@ -52,8 +52,8 @@ pipeline {
         stage("Build & Push Docker Image") {
             steps {
                 script {
-                    // Ensure 'dockerhub-credentials-id' is created in Jenkins Credentials Store
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials-id') {
+                    // 'dockerhub' matches the exact credential ID saved in Jenkins
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                         dockerImage.push("${IMAGE_TAG}")
                         dockerImage.push('latest')
@@ -61,7 +61,6 @@ pipeline {
                 }
             }
         }
-    }
 
     post {
         always {
