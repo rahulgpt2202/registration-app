@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        /* Temporary bypass for SonarQube while server is down:
+        Temporary bypass for SonarQube while server is down:
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
@@ -50,7 +50,7 @@ pipeline {
                 }
             }
         }
-        */
+        
 
         stage("Build & Push Docker Image") {
             steps {
@@ -65,12 +65,25 @@ pipeline {
         }
 
         stage("Trivy Scan") {
-            steps {
-                script {
-                    sh "docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${IMAGE_NAME}:latest --no-progress --scanners vuln --exit-code 0 --severity HIGH,CRITICAL --format table"
-                }
-            }
+    steps {
+        script {
+            // Mount the host cache directory so downloads persist across runs
+            // Pass --pkg-types os,library to skip heavy Java DB updates if not required
+            sh """
+            docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v /tmp/trivy-cache:/root/.cache/ \
+              aquasec/trivy image rahak2202/register-app-pipeline:latest \
+              --no-progress \
+              --scanners vuln \
+              --pkg-types os,library \
+              --exit-code 0 \
+              --severity HIGH,CRITICAL \
+              --format table
+            """
         }
+    }
+}
 
         stage('Cleanup Artifacts') {
             steps {
