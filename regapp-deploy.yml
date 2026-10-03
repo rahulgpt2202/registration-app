@@ -1,16 +1,20 @@
-apiVersion: apps/v1 
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: regapp-deployment
-  labels: 
-     app: regapp
-
+  namespace: default
+  labels:
+    app: regapp
 spec:
-  replicas: 2 
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: regapp
-
   template:
     metadata:
       labels:
@@ -22,8 +26,3 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
