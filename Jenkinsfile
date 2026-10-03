@@ -34,12 +34,11 @@ pipeline {
             }
         }
 
+        /* Temporary bypass for SonarQube while server is down:
         stage('SonarQube Analysis') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    withSonarQubeEnv('sonarqube-server') {
-                        sh 'mvn sonar:sonar'
-                    }
+                withSonarQubeEnv('sonarqube-server') {
+                    sh 'mvn sonar:sonar'
                 }
             }
         }
@@ -51,6 +50,7 @@ pipeline {
                 }
             }
         }
+        */
 
         stage("Build & Push Docker Image") {
             steps {
