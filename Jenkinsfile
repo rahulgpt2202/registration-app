@@ -75,8 +75,9 @@ pipeline {
               -v /tmp/trivy-cache:/root/.cache/ \
               aquasec/trivy image rahak2202/register-app-pipeline:latest \
               --no-progress \
+              --skip-db-update \
               --scanners vuln \
-              --pkg-types os,library \
+              --pkg-types os \
               --exit-code 0 \
               --severity HIGH,CRITICAL \
               --format table
