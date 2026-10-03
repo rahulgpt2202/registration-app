@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        Temporary bypass for SonarQube while server is down:
+       /* Temporary bypass for SonarQube while server is down:
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonarqube-server') {
@@ -50,7 +50,7 @@ pipeline {
                 }
             }
         }
-        
+        */
 
         stage("Build & Push Docker Image") {
             steps {
