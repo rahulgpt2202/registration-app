@@ -52,7 +52,6 @@ pipeline {
         stage("Build & Push Docker Image") {
             steps {
                 script {
-                    // ID set to 'dockerhub' matching your saved Jenkins credential
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
                         def dockerImage = docker.build("${IMAGE_NAME}:${IMAGE_TAG}")
                         dockerImage.push("${IMAGE_TAG}")
@@ -78,13 +77,21 @@ pipeline {
                 }
             }
         }
+
+        stage("Trigger CD Pipeline") {
+            steps {
+                withCredentials([string(credentialsId: 'jenkins-api-token', variable: 'JENKINS_API_TOKEN')]) {
+                    script {
+                        sh "curl -v -k --user clouduser:${JENKINS_API_TOKEN} -X POST -H 'cache-control: no-cache' -H 'content-type: application/x-www-form-urlencoded' --data 'IMAGE_TAG=${IMAGE_TAG}' 'http://ec2-13-233-199-37.ap-south-1.compute.amazonaws.com:8080/job/gitops-register-app-cd/buildWithParameters?token=gitops-token'"
+                    }
+                }
+            }
+        }
     }
 
     post {
         always {
-            node('Jenkins-Agent') {
-                cleanWs()
-            }
+            cleanWs()
         }
     }
 }
